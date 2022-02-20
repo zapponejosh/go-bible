@@ -1,26 +1,86 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/xml"
+	"flag"
 	"fmt"
-	"os"
+	"strings"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	f, err := os.Open("LEB.xml")
-	defer f.Close()
+
+	terms := flag.String("terms", "bald", "Comma separated search terms.")
+	flag.Parse()
+	termsSlice := strings.Split(*terms, ",")
+
+	connectDB(termsSlice)
+
+}
+
+func connectDB(terms []string) *sql.DB {
+	const (
+		host     = "localhost"
+		port     = 5432
+		user     = "bibleapp"
+		password = ""
+		dbname   = "bible"
+	)
+
+	queryTerms := strings.Join(terms, "&")
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"dbname=%s sslmode=disable",
+		host, port, user, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	err = db.Ping()
 	if err != nil {
 		panic(err)
 	}
 
-	var data Bible
-	err = xml.NewDecoder(f).Decode(&data)
+	rows, err := db.Query(`SELECT content, book, chapter, verse
+	FROM bible,
+		to_tsquery('english', $1) query
+	WHERE query @@ fts
+	LIMIT 20;`, queryTerms)
+	if err != nil {
+		// handle this error
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var content string
+		var book string
+		var chapter int
+		var verse int
+		err = rows.Scan(&content, &book, &chapter, &verse)
+		if err != nil {
+			// handle this error
+			panic(err)
+		}
 
-	fmt.Printf("%d books in the Bible\n", len(data.Book))
-	fmt.Printf("First is %s\n", data.Book[0].Num)
-	fmt.Printf("Last is %s\n", data.Book[len(data.Book)-1].Num)
-	fmt.Printf("%s\n", data.Book[0].Chapter[0].Verse[0].Text)
+		fmt.Printf("%s %d:%d\n", book, chapter, verse)
+		var verseContent Verse
+		err = xml.Unmarshal([]byte(content), &verseContent)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s\n\n", verseContent.Text)
+	}
+	// get any error encountered during iteration
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
 
+	return db
 }
 
 type Note struct {

@@ -15,3 +15,5 @@
 
 # ignore sql
 sql-scratch.sql
+
+vendor/
