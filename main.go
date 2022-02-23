@@ -12,15 +12,94 @@ import (
 
 func main() {
 
-	terms := flag.String("terms", "bald", "Comma separated search terms.")
+	terms := flag.String("terms", "", "Comma separated search terms.")
 	flag.Parse()
 	termsSlice := strings.Split(*terms, ",")
 
-	connectDB(termsSlice)
+	// create DB connection
+	DB, err := connectDB()
+	if err != nil {
+		panic(err)
+	}
+	err = DB.Ping()
+	if err != nil {
+		panic(err)
+	}
+	defer DB.Close()
+
+	ftsQuery, results, err := searchBible(termsSlice, DB)
+	showResults(ftsQuery, results, terms)
 
 }
 
-func connectDB(terms []string) *sql.DB {
+func showResults(fts []string, results *[]VerseResult, terms *string) {
+
+	for _, v := range *results {
+		fmt.Printf("%s %d:%d\n", v.book, v.chapter, v.verse)
+
+		//highlight term
+		verse := v.content.Text
+		for _, t := range fts {
+			t = strings.Trim(t, "'")
+			verse = strings.Replace(verse, t, fmt.Sprintf("{TERM}%s{/TERM}", t), -1)
+			verse = strings.Replace(verse, strings.Title(t), fmt.Sprintf("{TERM}%s{/TERM}", strings.Title(t)), -1)
+
+		}
+		fmt.Printf("%s\n\n", verse)
+	}
+	fmt.Printf("%d Results for %s\n", len(*results), *terms)
+	fmt.Printf("%s", fts)
+}
+
+func searchBible(terms []string, DB *sql.DB) ([]string, *[]VerseResult, error) {
+
+	queryTerms := strings.Join(terms, "&")
+
+	var ftsQuery []string
+
+	rows, err := DB.Query(`SELECT content, book, chapter, verse, query
+	FROM bible,
+		to_tsquery('english', $1) query
+	WHERE query @@ fts;`, queryTerms)
+	if err != nil {
+		// handle this error
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	var results []VerseResult
+
+	for rows.Next() {
+
+		var result VerseResult
+		var content string
+		var query string
+		err = rows.Scan(&content, &result.book, &result.chapter, &result.verse, &query)
+		if err != nil {
+			// handle this error
+			return nil, nil, err
+		}
+
+		err = xml.Unmarshal([]byte(content), &result.content)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		ftsQuery = strings.Split(query, "&")
+
+		results = append(results, result)
+	}
+	// get any error encountered during iteration
+	err = rows.Err()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return ftsQuery, &results, err
+
+}
+
+func connectDB() (*sql.DB, error) {
 	const (
 		host     = "localhost"
 		port     = 5432
@@ -29,60 +108,21 @@ func connectDB(terms []string) *sql.DB {
 		dbname   = "bible"
 	)
 
-	queryTerms := strings.Join(terms, "&")
-
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"dbname=%s sslmode=disable",
 		host, port, user, dbname)
 
 	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
 
-	rows, err := db.Query(`SELECT content, book, chapter, verse
-	FROM bible,
-		to_tsquery('english', $1) query
-	WHERE query @@ fts
-	LIMIT 20;`, queryTerms)
-	if err != nil {
-		// handle this error
-		panic(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var content string
-		var book string
-		var chapter int
-		var verse int
-		err = rows.Scan(&content, &book, &chapter, &verse)
-		if err != nil {
-			// handle this error
-			panic(err)
-		}
-
-		fmt.Printf("%s %d:%d\n", book, chapter, verse)
-		var verseContent Verse
-		err = xml.Unmarshal([]byte(content), &verseContent)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("%s\n\n", verseContent.Text)
-	}
-	// get any error encountered during iteration
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
-
-	return db
+	return db, err
 }
 
+type VerseResult struct {
+	content Verse
+	book    string
+	chapter int
+	verse   int
+}
 type Note struct {
 	Text        string        `xml:",chardata"`
 	TransChange []TransChange `xml:"transChange"`
