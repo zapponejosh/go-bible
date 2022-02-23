@@ -40,7 +40,9 @@ func showResults(fts []string, results *[]VerseResult, terms *string) {
 		//highlight term
 		verse := v.content.Text
 		for _, t := range fts {
-			t = strings.Trim(t, "'")
+			// clean terms
+			t = strings.Trim(strings.ReplaceAll(t, "'", ""), " ")
+
 			verse = strings.Replace(verse, t, fmt.Sprintf("{TERM}%s{/TERM}", t), -1)
 			verse = strings.Replace(verse, strings.Title(t), fmt.Sprintf("{TERM}%s{/TERM}", strings.Title(t)), -1)
 
@@ -48,7 +50,7 @@ func showResults(fts []string, results *[]VerseResult, terms *string) {
 		fmt.Printf("%s\n\n", verse)
 	}
 	fmt.Printf("%d Results for %s\n", len(*results), *terms)
-	fmt.Printf("%s", fts)
+	fmt.Printf("Terms: %s\n", strings.Join(fts, ","))
 }
 
 func searchBible(terms []string, DB *sql.DB) ([]string, *[]VerseResult, error) {
