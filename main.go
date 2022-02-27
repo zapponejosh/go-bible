@@ -5,12 +5,15 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"net/http"
 	"strings"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
+
+	fs := fileServer()
 
 	terms := flag.String("terms", "", "Comma separated search terms.")
 	flag.Parse()
@@ -30,6 +33,15 @@ func main() {
 	ftsQuery, results, err := searchBible(termsSlice, DB)
 	showResults(ftsQuery, results, terms)
 
+	fmt.Println("Starting the server on http://localhost:3333")
+	http.Handle("/", fs)
+	http.ListenAndServe(":3333", nil)
+
+}
+
+func fileServer() http.Handler {
+	fs := http.FileServer(http.Dir("./static"))
+	return fs
 }
 
 func showResults(fts []string, results *[]VerseResult, terms *string) {
