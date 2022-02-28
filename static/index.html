@@ -5,12 +5,40 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="stylesheets/style.css">
+  <link rel="stylesheet" href="/static/stylesheets/style.css">
   <title>Go-Bible</title>
 </head>
 
 <body>
   <h1>The Static Bible Go App</h1>
+  <form action="/" method="get">
+    <label for="search">Search the Bible!</label>
+    <input type="text" name="search" id="text">
+    <button type="submit">Go</button>
+  </form>
+  {{if .Results}}
+  <h3>Search Terms:</h3>
+  <ul>
+    {{range .Terms}}
+    <li>{{.}}</li>
+    {{end}}
+  </ul>
+  {{if .Results}}
+  <h3>Results</h3>
+  {{end}}
+  <ol>
+    {{with .Results}}
+    {{range $key, $value := .}}
+    <li>{{$key}}</li>
+    <p>{{$value}}</p>
+    <!-- <script>console.log("{{.}}")</script> -->
+
+    {{end}}
+    {{end}}
+  </ol>
+  {{else}}
+  <p>No results. Search again.</p>
+  {{end}}
 </body>
 
 </html>

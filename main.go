@@ -3,7 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/xml"
-	"flag"
+	"html/template"
+
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,11 +14,25 @@ import (
 
 func main() {
 
-	fs := fileServer()
+	// serve static file (ccs, images, etc)
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	terms := flag.String("terms", "", "Comma separated search terms.")
-	flag.Parse()
-	termsSlice := strings.Split(*terms, ",")
+	fmt.Println("Starting the server on http://localhost:3333")
+	http.HandleFunc("/", process)
+	http.ListenAndServe(":3333", nil)
+
+}
+
+func process(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/" {
+		http.Error(w, "404 not found!", http.StatusNotFound)
+		return
+	}
+
+	q := r.URL.Query()
+	terms := strings.Split(strings.Join(q["search"], " "), " ")
 
 	// create DB connection
 	DB, err := connectDB()
@@ -30,24 +45,31 @@ func main() {
 	}
 	defer DB.Close()
 
-	ftsQuery, results, err := searchBible(termsSlice, DB)
-	showResults(ftsQuery, results, terms)
+	ftsQuery, results, err := searchBible(terms, DB)
 
-	fmt.Println("Starting the server on http://localhost:3333")
-	http.Handle("/", fs)
-	http.ListenAndServe(":3333", nil)
+	tmpl, err := template.ParseFiles("static/index.html")
+	parsedResults := showResults(ftsQuery, results)
+
+	type ResultData struct {
+		Terms   []string
+		Results map[string](template.HTML)
+	}
+	data := ResultData{
+		Terms:   ftsQuery,
+		Results: parsedResults,
+	}
+	tmpl.Execute(w, data)
 
 }
 
-func fileServer() http.Handler {
-	fs := http.FileServer(http.Dir("./static"))
-	return fs
-}
+// Show verse ref and verse
+func showResults(fts []string, results *[]VerseResult) map[string](template.HTML) {
 
-func showResults(fts []string, results *[]VerseResult, terms *string) {
+	parseResults := make(map[string](template.HTML))
 
 	for _, v := range *results {
-		fmt.Printf("%s %d:%d\n", v.book, v.chapter, v.verse)
+
+		ref := fmt.Sprintf("%s %d:%d", v.book, v.chapter, v.verse)
 
 		//highlight term
 		verse := v.content.Text
@@ -55,14 +77,19 @@ func showResults(fts []string, results *[]VerseResult, terms *string) {
 			// clean terms
 			t = strings.Trim(strings.ReplaceAll(t, "'", ""), " ")
 
-			verse = strings.Replace(verse, t, fmt.Sprintf("{TERM}%s{/TERM}", t), -1)
-			verse = strings.Replace(verse, strings.Title(t), fmt.Sprintf("{TERM}%s{/TERM}", strings.Title(t)), -1)
+			verse = strings.Replace(verse, t, fmt.Sprintf("<i class='term'>%s</i>", t), -1)
+			verse = strings.Replace(verse, strings.Title(t), fmt.Sprintf("<i class='term'>%s</i>", strings.Title(t)), -1)
 
 		}
-		fmt.Printf("%s\n\n", verse)
+		textParsed := template.HTML(verse)
+
+		parseResults[ref] = textParsed
 	}
-	fmt.Printf("%d Results for %s\n", len(*results), *terms)
-	fmt.Printf("Terms: %s\n", strings.Join(fts, ","))
+	// removed terms param -- terms *string
+	// fmt.Printf("%d Results for %s\n", len(*results), *terms)
+	// fmt.Printf("Terms: %s\n", strings.Join(fts, ","))
+
+	return parseResults
 }
 
 func searchBible(terms []string, DB *sql.DB) ([]string, *[]VerseResult, error) {
@@ -74,7 +101,7 @@ func searchBible(terms []string, DB *sql.DB) ([]string, *[]VerseResult, error) {
 	rows, err := DB.Query(`SELECT content, book, chapter, verse, query
 	FROM bible,
 		to_tsquery('english', $1) query
-	WHERE query @@ fts;`, queryTerms)
+	WHERE query @@ fts LIMIT 50;`, queryTerms)
 	if err != nil {
 		// handle this error
 		return nil, nil, err
