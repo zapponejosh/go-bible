@@ -27,14 +27,10 @@
   <h3>Results</h3>
   {{end}}
   <ol>
-    {{with .Results}}
-    {{range $key, $value := .}}
-    <li>{{$key}}</li>
-    <p>{{$value}}</p>
-    <!-- <script>console.log("{{.}}")</script> -->
-
-    {{end}}
-    {{end}}
+    {{ range .Results }}
+    <li>{{ .Book }} {{ .Chapter }}:{{ .Verse }}</li>
+    <p>{{ .VerseHtml }}</p>
+    {{ end }}
   </ol>
   {{else}}
   <p>No results. Search again.</p>

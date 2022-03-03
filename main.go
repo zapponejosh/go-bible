@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/xml"
 	"html/template"
+	"log"
 
 	"fmt"
 	"net/http"
@@ -13,26 +14,6 @@ import (
 )
 
 func main() {
-
-	// serve static file (ccs, images, etc)
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
-	fmt.Println("Starting the server on http://localhost:3333")
-	http.HandleFunc("/", process)
-	http.ListenAndServe(":3333", nil)
-
-}
-
-func process(w http.ResponseWriter, r *http.Request) {
-
-	if r.URL.Path != "/" {
-		http.Error(w, "404 not found!", http.StatusNotFound)
-		return
-	}
-
-	q := r.URL.Query()
-	terms := strings.Split(strings.Join(q["search"], " "), " ")
 
 	// create DB connection
 	DB, err := connectDB()
@@ -44,35 +25,73 @@ func process(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	defer DB.Close()
+	tmpl := template.Must(template.ParseFiles("static/index.html"))
 
-	ftsQuery, results, err := searchBible(terms, DB)
-
-	tmpl, err := template.ParseFiles("static/index.html")
-	parsedResults := showResults(ftsQuery, results)
-
-	type ResultData struct {
-		Terms   []string
-		Results map[string](template.HTML)
-	}
-	data := ResultData{
-		Terms:   ftsQuery,
-		Results: parsedResults,
-	}
-	tmpl.Execute(w, data)
+	// serve static file (ccs, images, etc)
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	hand := NewIndexHandler(DB, tmpl)
+	fmt.Println("Starting the server on http://localhost:3333")
+	http.Handle("/", hand)
+	http.ListenAndServe(":3333", nil)
 
 }
 
-// Show verse ref and verse
-func showResults(fts []string, results *[]VerseResult) map[string](template.HTML) {
+type ResultData struct {
+	Terms []string
+	// Results map[string](template.HTML)
+	Results []*VerseResult
+}
 
-	parseResults := make(map[string](template.HTML))
+func NewIndexHandler(db *sql.DB, indexTemp *template.Template) *indexHandler {
+	return &indexHandler{db: db, indexTemp: indexTemp}
+}
 
-	for _, v := range *results {
+type indexHandler struct {
+	db        *sql.DB
+	indexTemp *template.Template
+}
 
-		ref := fmt.Sprintf("%s %d:%d", v.book, v.chapter, v.verse)
+func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.Error(w, "404 not found!", http.StatusNotFound)
+		return
+	}
+
+	q := r.URL.Query()
+	terms := strings.Split(strings.Join(q["search"], " "), " ")
+
+	ftsQuery, results, err := searchBible(terms, h.db)
+	if err != nil {
+		log.Println("error searching terms", err)
+		http.Error(w, "search error", http.StatusInternalServerError)
+		return
+	}
+
+	highlightTerm(ftsQuery, results)
+
+	data := ResultData{
+		Terms:   ftsQuery,
+		Results: results,
+	}
+
+	if err := h.indexTemp.Execute(w, data); err != nil {
+		log.Println("error executing tempalte", err)
+		http.Error(w, "tempalte error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func highlightTerm(fts []string, results []*VerseResult) {
+
+	parseResults := make(map[string]template.HTML)
+
+	for _, v := range results {
+
+		ref := fmt.Sprintf("%s %d:%d", v.Book, v.Chapter, v.Verse)
 
 		//highlight term
-		verse := v.content.Text
+		verse := v.Content.Text
 		for _, t := range fts {
 			// clean terms
 			t = strings.Trim(strings.ReplaceAll(t, "'", ""), " ")
@@ -84,19 +103,14 @@ func showResults(fts []string, results *[]VerseResult) map[string](template.HTML
 		textParsed := template.HTML(verse)
 
 		parseResults[ref] = textParsed
-	}
-	// removed terms param -- terms *string
-	// fmt.Printf("%d Results for %s\n", len(*results), *terms)
-	// fmt.Printf("Terms: %s\n", strings.Join(fts, ","))
 
-	return parseResults
+		v.VerseHtml = template.HTML(verse)
+	}
+
 }
 
-func searchBible(terms []string, DB *sql.DB) ([]string, *[]VerseResult, error) {
-
+func searchBible(terms []string, DB *sql.DB) ([]string, []*VerseResult, error) {
 	queryTerms := strings.Join(terms, "&")
-
-	var ftsQuery []string
 
 	rows, err := DB.Query(`SELECT content, book, chapter, verse, query
 	FROM bible,
@@ -108,27 +122,29 @@ func searchBible(terms []string, DB *sql.DB) ([]string, *[]VerseResult, error) {
 	}
 	defer rows.Close()
 
-	var results []VerseResult
-
+	var (
+		results  []*VerseResult
+		ftsQuery []string
+	)
 	for rows.Next() {
 
 		var result VerseResult
 		var content string
 		var query string
-		err = rows.Scan(&content, &result.book, &result.chapter, &result.verse, &query)
+		err = rows.Scan(&content, &result.Book, &result.Chapter, &result.Verse, &query)
 		if err != nil {
 			// handle this error
 			return nil, nil, err
 		}
 
-		err = xml.Unmarshal([]byte(content), &result.content)
+		err = xml.Unmarshal([]byte(content), &result.Content)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		ftsQuery = strings.Split(query, "&")
 
-		results = append(results, result)
+		results = append(results, &result)
 	}
 	// get any error encountered during iteration
 	err = rows.Err()
@@ -136,7 +152,7 @@ func searchBible(terms []string, DB *sql.DB) ([]string, *[]VerseResult, error) {
 		return nil, nil, err
 	}
 
-	return ftsQuery, &results, err
+	return ftsQuery, results, err
 
 }
 
@@ -159,10 +175,11 @@ func connectDB() (*sql.DB, error) {
 }
 
 type VerseResult struct {
-	content Verse
-	book    string
-	chapter int
-	verse   int
+	Content   Verse
+	Book      string
+	Chapter   int
+	Verse     int
+	VerseHtml template.HTML
 }
 type Note struct {
 	Text        string        `xml:",chardata"`
