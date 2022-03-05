@@ -58,7 +58,7 @@ func (h chapterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.chapterTemp.Execute(w, data); err != nil {
 		log.Println("error executing tempalte", err)
-		http.Error(w, "tempalte error", http.StatusInternalServerError)
+		http.Error(w, "template error", http.StatusInternalServerError)
 		return
 	}
 }

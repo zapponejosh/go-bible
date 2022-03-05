@@ -22,7 +22,7 @@
   <p><span>{{ .Verse }}</span> {{ .Content.Text }}</p>
   {{ end }}
   {{else}}
-  <p>No results. Search again.</p>
+  <p>No results for {{.Reference.Book}} {{.Reference.Chapter}}.</p>
   {{end}}
 </body>
 
