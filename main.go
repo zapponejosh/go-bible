@@ -25,22 +25,40 @@ func main() {
 		panic(err)
 	}
 	defer DB.Close()
+
+	// templates
 	tmpl := template.Must(template.ParseFiles("static/index.html"))
+	chapterTmpl := template.Must(template.ParseFiles("static/chapter.html"))
 
 	// serve static file (ccs, images, etc)
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	// chapter handler
+	chapterHand := NewChapterHandler(DB, chapterTmpl)
+	http.Handle("/chapter/", chapterHand)
+
+	// search handler
 	hand := NewIndexHandler(DB, tmpl)
-	fmt.Println("Starting the server on http://localhost:3333")
 	http.Handle("/", hand)
+
+	// Start server
+	fmt.Println("Starting the server on http://localhost:3333")
 	http.ListenAndServe(":3333", nil)
 
 }
 
+type chapterResult struct {
+	Reference string
+	Results   []*VerseResult
+}
 type ResultData struct {
-	Terms []string
-	// Results map[string](template.HTML)
+	Terms   []string
 	Results []*VerseResult
+}
+type ChapterData struct {
+	Reference Reference
+	Results   []*VerseResult
 }
 
 func NewIndexHandler(db *sql.DB, indexTemp *template.Template) *indexHandler {
@@ -54,7 +72,7 @@ type indexHandler struct {
 
 func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.Error(w, "404 not found!", http.StatusNotFound)
+		http.Error(w, "404 not found! This is the index hanlder!", http.StatusNotFound)
 		return
 	}
 
@@ -76,6 +94,50 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.indexTemp.Execute(w, data); err != nil {
+		log.Println("error executing tempalte", err)
+		http.Error(w, "tempalte error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func NewChapterHandler(db *sql.DB, chapterTemp *template.Template) *chapterHandler {
+	return &chapterHandler{db: db, chapterTemp: chapterTemp}
+}
+
+type chapterHandler struct {
+	db          *sql.DB
+	chapterTemp *template.Template
+}
+
+type Reference struct {
+	Book    string
+	Chapter int
+}
+
+func (h chapterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/chapter/" {
+		http.Error(w, "404 not found! Chapter hanlder", http.StatusNotFound)
+		return
+	}
+
+	// q := r.URL.Query()
+
+	results, err := getChapters(Reference{"Ps", 116}, h.db)
+	if err != nil {
+		log.Println("error searching terms", err)
+		http.Error(w, "search error", http.StatusInternalServerError)
+		return
+	}
+
+	// highlightTerm(ftsQuery, results)
+	var ref = Reference{"Ps", 116}
+
+	data := ChapterData{
+		Reference: ref,
+		Results:   results,
+	}
+
+	if err := h.chapterTemp.Execute(w, data); err != nil {
 		log.Println("error executing tempalte", err)
 		http.Error(w, "tempalte error", http.StatusInternalServerError)
 		return
@@ -153,6 +215,46 @@ func searchBible(terms []string, DB *sql.DB) ([]string, []*VerseResult, error) {
 	}
 
 	return ftsQuery, results, err
+
+}
+func getChapters(ref Reference, DB *sql.DB) ([]*VerseResult, error) {
+
+	rows, err := DB.Query(`SELECT content, book, chapter, verse
+	FROM bible WHERE book = $1 AND chapter = $2
+	ORDER BY verse;`, ref.Book, ref.Chapter)
+	if err != nil {
+		// handle this error
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		results []*VerseResult
+	)
+	for rows.Next() {
+
+		var result VerseResult
+		var content string
+		err = rows.Scan(&content, &result.Book, &result.Chapter, &result.Verse)
+		if err != nil {
+			// handle this error
+			return nil, err
+		}
+
+		err = xml.Unmarshal([]byte(content), &result.Content)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, &result)
+	}
+	// get any error encountered during iteration
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return results, err
 
 }
 
