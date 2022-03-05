@@ -11,6 +11,11 @@
 
 <body>
   <h1>The Static Bible Go App</h1>
+  <form action="/" method="get">
+    <label for="search">Search the Bible!</label>
+    <input type="text" name="search" id="text">
+    <button type="submit">Go</button>
+  </form>
   {{if .Results}}
   <h2>{{.Reference.Book}} {{.Reference.Chapter}}</h2>
   {{ range .Results }}
