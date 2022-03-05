@@ -28,7 +28,7 @@
   {{end}}
   <ol>
     {{ range .Results }}
-    <li>{{ .Book }} {{ .Chapter }}:{{ .Verse }}</li>
+    <li><a href="/{{.Book}}/{{.Chapter}}">{{ .Book }} {{ .Chapter }}:{{ .Verse }}</a></li>
     <p>{{ .VerseHtml }}</p>
     {{ end }}
   </ol>
