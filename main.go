@@ -33,12 +33,11 @@ func main() {
 	r := mux.NewRouter()
 
 	// serve static file (ccs, images, etc)
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	// chapter handler
 	chapterHand := handlers.NewChapterHandler(DB, chapterTmpl)
-	r.Handle("{book}/{chapter}", chapterHand)
+	r.Handle("/{book}/{chapter}", chapterHand)
 
 	// search handler
 	hand := handlers.NewIndexHandler(DB, tmpl)
