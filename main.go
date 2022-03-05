@@ -46,7 +46,7 @@ func main() {
 
 	// Start server
 	fmt.Println("Starting the server on http://localhost:3333")
-	http.ListenAndServe(":3333", nil)
+	http.ListenAndServe(":3333", r)
 
 }
 
