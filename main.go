@@ -35,6 +35,11 @@ func main() {
 	// serve static file (ccs, images, etc)
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
+	// API routes
+	api := r.PathPrefix("/api").Subrouter()
+	booksHand := handlers.NewBooksHandler(DB)
+	api.Handle("/books", booksHand)
+
 	// chapter handler
 	chapterHand := handlers.NewChapterHandler(DB, chapterTmpl)
 	r.Handle("/{book}/{chapter}", chapterHand)

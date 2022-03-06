@@ -14,6 +14,15 @@
   <form action="/" method="get">
     <label for="search">Search the Bible!</label>
     <input type="text" name="search" id="text">
+    <button type="submit">Search</button>
+  </form>
+  <form id="chapterForm" method="get">
+    <label for="book">Go to chapter</label>
+    <select name="book" id="bookSelect">
+
+    </select>
+    <select name="chapter" id="chapterSelect">
+    </select>
     <button type="submit">Go</button>
   </form>
   {{if .Results}}
@@ -36,5 +45,7 @@
   <p>No results. Search again.</p>
   {{end}}
 </body>
+
+<script src="/static/scripts/chapterSearch.js"></script>
 
 </html>

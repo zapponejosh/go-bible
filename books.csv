@@ -1,67 +1,67 @@
-short_name,long_name,testament,book_num
-Gen,Genisis,OT,1
-Exod,Exodus,OT,2
-Lev,Leviticus,OT,3
-Num,Numbers,OT,4
-Deut,Deuteronomy,OT,5
-Josh,Joshua,OT,6
-Judg,Judges,OT,7
-Ruth,Ruth,OT,8
-1Sam,1 Samuel,OT,9
-2Sam,2 Samuel,OT,10
-1Kgs,1 Kings,OT,11
-2Kgs,2 Kings,OT,12
-1Chr,1 Chronicles,OT,13
-2Chr,2 Choronicles,OT,14
-Ezra,Ezra,OT,15
-Neh,Nehemiah,OT,16
-Esth,Esther,OT,17
-Job,Job,OT,18
-Ps,Psalms,OT,19
-Prov,Proverbs,OT,20
-Eccl,Ecclesiastes,OT,21
-Song,Song of Solomon,OT,22
-Isa,Isaiah,OT,23
-Jer,Jeremiah,OT,24
-Lam,Lamentations,OT,25
-Ezek,Ezekiel,OT,26
-Dan,Daniel,OT,27
-Hos,Hosea,OT,28
-Joel,Joel,OT,29
-Amos,Amos,OT,30
-Obad,Obadiah,OT,31
-Jonah,Jonah,OT,32
-Mic,Micah,OT,33
-Nah,Nahum,OT,34
-Hab,Habakkuk,OT,35
-Zeph,Zephaniah,OT,36
-Hag,Haggai,OT,37
-Zech,Zechariah,OT,38
-Mal,Malachi ,OT,39
-Matt,Matthew,NT,40
-Mark,Mark,NT,41
-Luke,Luke,NT,42
-John,John,NT,43
-Acts,Acts,NT,44
-Rom,Romans,NT,45
-1Cor,1 Corinthians,NT,46
-2Cor,2 Corinthians,NT,47
-Gal,Galatians,NT,48
-Eph,Ephesians,NT,49
-Phil,Philippians,NT,50
-Col,Colossians,NT,51
-1Thess,1 Thessalonians,NT,52
-2Thess,2 Thessalonians,NT,53
-1Tim,1 Timothy,NT,54
-2Tim,2 Timothy,NT,55
-Titus,Titus,NT,56
-Phlm,Philemon,NT,57
-Heb,Hebrews,NT,58
-Jas,James,NT,59
-1Pet,1 Peter,NT,60
-2Pet,2 Peter,NT,61
-1John,1 John,NT,62
-2John,2 John,NT,63
-3John,3 John,NT,64
-Jude,Jude,NT,65
-Rev,Revelation,NT,66
+short_name,long_name,testament,book_num,chapters,section
+Gen,Genisis,OT,1,50,pentateuch
+Exod,Exodus,OT,2,40,pentateuch
+Lev,Leviticus,OT,3,27,pentateuch
+Num,Numbers,OT,4,36,pentateuch
+Deut,Deuteronomy,OT,5,34,pentateuch
+Josh,Joshua,OT,6,24,history
+Judg,Judges,OT,7,21,history
+Ruth,Ruth,OT,8,4,history
+1Sam,1 Samuel,OT,9,31,history
+2Sam,2 Samuel,OT,10,24,history
+1Kgs,1 Kings,OT,11,22,history
+2Kgs,2 Kings,OT,12,25,history
+1Chr,1 Chronicles,OT,13,29,history
+2Chr,2 Choronicles,OT,14,36,history
+Ezra,Ezra,OT,15,10,history
+Neh,Nehemiah,OT,16,13,history
+Esth,Esther,OT,17,10,history
+Job,Job,OT,18,42,wisdom
+Ps,Psalms,OT,19,150,wisdom
+Prov,Proverbs,OT,20,31,wisdom
+Eccl,Ecclesiastes,OT,21,12,wisdom
+Song,Song of Solomon,OT,22,8,wisdom
+Isa,Isaiah,OT,23,66,majProphets
+Jer,Jeremiah,OT,24,52,majProphets
+Lam,Lamentations,OT,25,5,majProphets
+Ezek,Ezekiel,OT,26,48,majProphets
+Dan,Daniel,OT,27,12,majProphets
+Hos,Hosea,OT,28,14,minProphets
+Joel,Joel,OT,29,3,minProphets
+Amos,Amos,OT,30,9,minProphets
+Obad,Obadiah,OT,31,1,minProphets
+Jonah,Jonah,OT,32,4,minProphets
+Mic,Micah,OT,33,7,minProphets
+Nah,Nahum,OT,34,3,minProphets
+Hab,Habakkuk,OT,35,3,minProphets
+Zeph,Zephaniah,OT,36,3,minProphets
+Hag,Haggai,OT,37,2,minProphets
+Zech,Zechariah,OT,38,14,minProphets
+Mal,Malachi ,OT,39,4,minProphets
+Matt,Matthew,NT,40,28,gospels
+Mark,Mark,NT,41,16,gospels
+Luke,Luke,NT,42,24,gospels
+John,John,NT,43,21,gospels
+Acts,Acts,NT,44,28,history
+Rom,Romans,NT,45,16,paulineEpistles
+1Cor,1 Corinthians,NT,46,16,paulineEpistles
+2Cor,2 Corinthians,NT,47,13,paulineEpistles
+Gal,Galatians,NT,48,6,paulineEpistles
+Eph,Ephesians,NT,49,6,paulineEpistles
+Phil,Philippians,NT,50,4,paulineEpistles
+Col,Colossians,NT,51,4,paulineEpistles
+1Thess,1 Thessalonians,NT,52,5,paulineEpistles
+2Thess,2 Thessalonians,NT,53,3,paulineEpistles
+1Tim,1 Timothy,NT,54,6,paulineEpistles
+2Tim,2 Timothy,NT,55,4,paulineEpistles
+Titus,Titus,NT,56,3,paulineEpistles
+Phlm,Philemon,NT,57,1,paulineEpistles
+Heb,Hebrews,NT,58,13,generalEpistles
+Jas,James,NT,59,5,generalEpistles
+1Pet,1 Peter,NT,60,5,generalEpistles
+2Pet,2 Peter,NT,61,3,generalEpistles
+1John,1 John,NT,62,5,generalEpistles
+2John,2 John,NT,63,1,generalEpistles
+3John,3 John,NT,64,1,generalEpistles
+Jude,Jude,NT,65,1,generalEpistles
+Rev,Revelation,NT,66,22,apocalypse
