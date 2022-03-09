@@ -26,10 +26,25 @@
     <button type="submit">Go</button>
   </form>
   {{if .Results}}
-  <h2>{{.Reference.Book}} {{.Reference.Chapter}}</h2>
-  {{ range .Results }}
-  <p><span>{{ .Verse }}</span> {{ .Content.Text }}</p>
-  {{ end }}
+  <div id="chapter-container">
+    <a href="#previous" id="previous">
+      <div class="full-button">
+        <p>Previous</p>
+      </div>
+    </a>
+    <div id="chapter-body">
+      <h2>{{.Reference.Book}} {{.Reference.Chapter}}</h2>
+      {{ range .Results }}
+      <p><span>{{ .Verse }}</span> {{ .Content.Text }}</p>
+
+      {{ end }}
+    </div>
+    <a href="#next" id="next">
+      <div class="full-button">
+        <p>Next</p>
+      </div>
+    </a>
+  </div>
   {{else}}
   <p>No results for {{.Reference.Book}} {{.Reference.Chapter}}.</p>
   {{end}}

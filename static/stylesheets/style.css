@@ -12,3 +12,27 @@ h1 {
 .term {
   background-color: rgb(245, 245, 145);
 }
+
+#chapter-container {
+  display: flex;
+}
+
+#chapter-container a {
+  min-width: 100px;
+  background-color: lightblue;
+  border-radius: 5px;
+  text-align: center;
+  margin: 10px 0;
+  min-height: 80vh;
+}
+
+#chapter-body {
+  margin: 10px 30px;
+}
+
+.isDisabled {
+  color: currentColor;
+  cursor: not-allowed;
+  opacity: 0.5;
+  text-decoration: none;
+}
