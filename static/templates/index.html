@@ -37,7 +37,7 @@
   {{end}}
   <ol>
     {{ range .Results }}
-    <li><a href="/{{.Book}}/{{.Chapter}}">{{ .Book }} {{ .Chapter }}:{{ .Verse }}</a></li>
+    <li><a href="/{{.Book}}/{{.Chapter}}?ref={{.Verse}}">{{ .Book }} {{ .Chapter }}:{{ .Verse }}</a></li>
     <p>{{ .VerseHtml }}</p>
     {{ end }}
   </ol>

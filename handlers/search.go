@@ -95,8 +95,8 @@ func highlightTerm(fts []string, results []*VerseResult) {
 			// clean terms
 			t = strings.Trim(strings.ReplaceAll(t, "'", ""), " ")
 
-			verse = strings.Replace(verse, t, fmt.Sprintf("<i class='term'>%s</i>", t), -1)
-			verse = strings.Replace(verse, strings.Title(t), fmt.Sprintf("<i class='term'>%s</i>", strings.Title(t)), -1)
+			verse = strings.Replace(verse, t, fmt.Sprintf("<i class='highlight'>%s</i>", t), -1)
+			verse = strings.Replace(verse, strings.Title(t), fmt.Sprintf("<i class='highlight'>%s</i>", strings.Title(t)), -1)
 
 		}
 		textParsed := template.HTML(verse)
