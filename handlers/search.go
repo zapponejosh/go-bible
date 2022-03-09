@@ -58,16 +58,25 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	q := r.URL.Query()
+	// format query in slice
 	terms := strings.Split(strings.Join(q["search"], " "), " ")
+	// allow for phrases
+	phrase := false
+	t1 := strings.Index(terms[0], "\"")
+	last := terms[len(terms)-1]
+	tfinal := strings.Index(last, "\"")
+	if t1 == 0 && tfinal == len(last)-1 {
+		phrase = true
+	}
 
-	ftsQuery, results, err := searchBible(terms, h.db)
+	ftsQuery, results, err := searchBible(terms, h.db, phrase)
 	if err != nil {
 		log.Println("error searching terms", err)
 		http.Error(w, "search error", http.StatusInternalServerError)
 		return
 	}
 
-	highlightTerm(ftsQuery, results)
+	highlightTerm(ftsQuery, results, phrase)
 
 	data := ResultData{
 		Terms:   ftsQuery,
@@ -81,7 +90,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func highlightTerm(fts []string, results []*VerseResult) {
+func highlightTerm(fts []string, results []*VerseResult, isPhrase bool) {
 
 	parseResults := make(map[string]template.HTML)
 
@@ -108,8 +117,13 @@ func highlightTerm(fts []string, results []*VerseResult) {
 
 }
 
-func searchBible(terms []string, DB *sql.DB) ([]string, []*VerseResult, error) {
-	queryTerms := strings.Join(terms, "&")
+func searchBible(terms []string, DB *sql.DB, isPhrase bool) ([]string, []*VerseResult, error) {
+	var queryTerms string
+	if isPhrase {
+		queryTerms = strings.Join(terms, "<->")
+	} else {
+		queryTerms = strings.Join(terms, "&")
+	}
 
 	rows, err := DB.Query(`SELECT content, book, chapter, verse, query
 	FROM bible,
@@ -141,7 +155,15 @@ func searchBible(terms []string, DB *sql.DB) ([]string, []*VerseResult, error) {
 			return nil, nil, err
 		}
 
-		ftsQuery = strings.Split(query, "&")
+		if isPhrase {
+			phraseFts := query
+			for i := 1; i < 5; i++ {
+				phraseFts = strings.ReplaceAll(phraseFts, fmt.Sprintf("<%d>", i), "&")
+			}
+			ftsQuery = strings.Split(phraseFts, "&")
+		} else {
+			ftsQuery = strings.Split(query, "&")
+		}
 
 		results = append(results, &result)
 	}
