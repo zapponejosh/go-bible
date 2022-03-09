@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", (event) => {
   let params = new URL(document.location).searchParams;
   let ref = params.get("ref");
-
-  let referringVerse = document.querySelector(`[data-verse='${ref}']`);
-  referringVerse.className = "highlight";
-  referringVerse.scrollIntoView({ block: "center" });
+  if (ref) {
+    let referringVerse = document.querySelector(`[data-verse='${ref}']`);
+    referringVerse.className = "highlight";
+    referringVerse.scrollIntoView({ block: "center" });
+  }
 });
