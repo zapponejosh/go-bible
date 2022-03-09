@@ -13,7 +13,7 @@
   <h1>The Static Bible Go App</h1>
   <form action="/" method="get">
     <label for="search">Search the Bible!</label>
-    <input type="text" name="search" id="text">
+    <input type="text" name="search" id="search">
     <button type="submit">Search</button>
   </form>
   <form id="chapterForm" method="get">
@@ -37,7 +37,8 @@
   {{end}}
   <ol>
     {{ range .Results }}
-    <li><a href="/{{.Book}}/{{.Chapter}}?ref={{.Verse}}">{{ .Book }} {{ .Chapter }}:{{ .Verse }}</a></li>
+    <li><a class="reference" href="/{{.Book}}/{{.Chapter}}?ref={{.Verse}}">{{ .Book }} {{ .Chapter }}:{{ .Verse }}</a>
+    </li>
     <p>{{ .VerseHtml }}</p>
     {{ end }}
   </ol>
@@ -47,5 +48,6 @@
 </body>
 
 <script src="/static/scripts/chapterSearch.js"></script>
+<script src="/static/scripts/search.js"></script>
 
 </html>
