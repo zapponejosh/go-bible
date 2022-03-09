@@ -27,8 +27,8 @@ func main() {
 	defer DB.Close()
 
 	// templates
-	tmpl := template.Must(template.ParseFiles("static/index.html"))
-	chapterTmpl := template.Must(template.ParseFiles("static/chapter.html"))
+	tmpl := template.Must(template.ParseFiles("static/templates/index.html"))
+	chapterTmpl := template.Must(template.ParseFiles("static/templates/chapter.html"))
 
 	r := mux.NewRouter()
 
