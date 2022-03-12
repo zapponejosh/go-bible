@@ -97,8 +97,6 @@ func highlightTerm(fts []string, results []*VerseResult, isPhrase bool) {
 
 	for _, v := range results {
 
-		// ref := fmt.Sprintf("%s %d:%d", v.Book, v.Chapter, v.Verse)
-
 		//highlight term
 		verse := v.Content.Text
 		for _, t := range fts {
@@ -127,9 +125,6 @@ func highlightTerm(fts []string, results []*VerseResult, isPhrase bool) {
 			verse = strings.Join(vSlice, " ")
 
 		}
-		// textParsed := template.HTML(verse)
-
-		// parseResults[ref] = textParsed
 
 		v.VerseHtml = template.HTML(verse)
 	}
