@@ -92,9 +92,6 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func highlightTerm(fts []string, results []*VerseResult, isPhrase bool) {
-
-	// parseResults := make(map[string]template.HTML)
-
 	for _, v := range results {
 
 		//highlight term
