@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"regexp"
 
 	"net/http"
 	"strings"
@@ -91,12 +92,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func highlightTerm(fts []string, results []*VerseResult, isPhrase bool) {
-
-	parseResults := make(map[string]template.HTML)
-
 	for _, v := range results {
-
-		ref := fmt.Sprintf("%s %d:%d", v.Book, v.Chapter, v.Verse)
 
 		//highlight term
 		verse := v.Content.Text
@@ -104,13 +100,28 @@ func highlightTerm(fts []string, results []*VerseResult, isPhrase bool) {
 			// clean terms
 			t = strings.Trim(strings.ReplaceAll(t, "'", ""), " ")
 
-			verse = strings.Replace(verse, t, fmt.Sprintf("<i class='highlight'>%s</i>", t), -1)
-			verse = strings.Replace(verse, strings.Title(t), fmt.Sprintf("<i class='highlight'>%s</i>", strings.Title(t)), -1)
+			// convert verse string to []string and for each item do strings.contains
+			vSlice := strings.Split(verse, " ")
+
+			for i, wrd := range vSlice {
+				preSpan := "<span class='highlight'>"
+				postSpan := "</span>"
+				if strings.Contains(wrd, t) || strings.Contains(wrd, strings.Title(t)) {
+
+					// if last character is a symbol pull it out and add it after postSpan
+					lastCh := wrd[len(wrd)-1:]
+					matched, _ := regexp.MatchString(`\W`, lastCh)
+					if matched {
+						vSlice[i] = preSpan + wrd[:len(wrd)-1] + postSpan + lastCh
+					} else {
+						vSlice[i] = preSpan + wrd + postSpan
+					}
+
+				}
+			}
+			verse = strings.Join(vSlice, " ")
 
 		}
-		textParsed := template.HTML(verse)
-
-		parseResults[ref] = textParsed
 
 		v.VerseHtml = template.HTML(verse)
 	}
