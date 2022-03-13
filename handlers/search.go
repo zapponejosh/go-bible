@@ -136,10 +136,23 @@ func searchBible(terms []string, DB *sql.DB, isPhrase bool) ([]string, []*VerseR
 		queryTerms = strings.Join(terms, "&")
 	}
 
-	rows, err := DB.Query(`SELECT content, book, chapter, verse, query
-	FROM bible,
-		to_tsquery('english', $1) query
-	WHERE query @@ fts LIMIT 50;`, queryTerms)
+	rows, err := DB.Query(`SELECT b.content,
+  b.book,
+  b.chapter,
+  b.verse,
+  b.query
+FROM (
+    SELECT content,
+      book,
+      chapter,
+      verse,
+      query
+    FROM bible,
+      to_tsquery('english', $1) query
+    WHERE query @@ fts
+  ) as b
+  LEFT JOIN books k on k.short_name = b.book
+ORDER BY k.book_num LIMIT 50;`, queryTerms)
 	if err != nil {
 		// handle this error
 		return nil, nil, err
