@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", (event) => {
+  // persist search input value
   let params = new URL(document.location).searchParams;
   let search = params.get("search");
   if (search) {
@@ -9,4 +10,30 @@ document.addEventListener("DOMContentLoaded", (event) => {
     let searchInput = document.getElementById("search");
     searchInput.value = search;
   }
+
+  // set pagination buttons
+  let moreRes = document.getElementById("next-results");
+  let prevRes = document.getElementById("prev-results");
+  let resultCount = Number(document.getElementById("results").dataset.count);
+
+  let currentPage = Number(params.get("p"));
+  let prevPage;
+  let nextPage;
+
+  if (currentPage <= 1 || !currentPage) {
+    nextPage = 2;
+    prevRes.remove();
+  } else if (resultCount / (currentPage * 50) < 1) {
+    prevPage = currentPage - 1;
+    moreRes.remove();
+  } else {
+    nextPage = currentPage + 1;
+    prevPage = currentPage - 1;
+  }
+
+  params.set("p", nextPage);
+  moreRes.href = document.location.origin + "?" + params;
+
+  params.set("p", prevPage);
+  prevRes.href = document.location.origin + "?" + params;
 });

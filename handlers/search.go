@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log"
 	"regexp"
+	"strconv"
 
 	"net/http"
 	"strings"
@@ -46,6 +47,7 @@ type indexHandler struct {
 type ResultData struct {
 	Terms   []string
 	Results []*VerseResult
+	Count   int
 }
 
 func NewIndexHandler(db *sql.DB, indexTemp *template.Template) *indexHandler {
@@ -61,6 +63,12 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	// format query in slice
 	terms := strings.Split(strings.Join(q["search"], " "), " ")
+	offset, err := strconv.Atoi(strings.Join(q["p"], ""))
+	if err != nil || offset <= 0 {
+		offset = 0
+	} else {
+		offset = (offset - 1) * 50
+	}
 	// allow for phrases
 	phrase := false
 	t1 := strings.Index(terms[0], "\"")
@@ -70,7 +78,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		phrase = true
 	}
 
-	ftsQuery, results, err := searchBible(terms, h.db, phrase)
+	ftsQuery, results, resultCount, err := searchBible(terms, h.db, phrase, offset)
 	if err != nil {
 		log.Println("error searching terms", err)
 		http.Error(w, "search error", http.StatusInternalServerError)
@@ -82,6 +90,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := ResultData{
 		Terms:   ftsQuery,
 		Results: results,
+		Count:   resultCount,
 	}
 
 	if err := h.indexTemp.Execute(w, data); err != nil {
@@ -128,7 +137,7 @@ func highlightTerm(fts []string, results []*VerseResult, isPhrase bool) {
 
 }
 
-func searchBible(terms []string, DB *sql.DB, isPhrase bool) ([]string, []*VerseResult, error) {
+func searchBible(terms []string, DB *sql.DB, isPhrase bool, offset int) ([]string, []*VerseResult, int, error) {
 	var queryTerms string
 	if isPhrase {
 		queryTerms = strings.Join(terms, "<->")
@@ -140,7 +149,8 @@ func searchBible(terms []string, DB *sql.DB, isPhrase bool) ([]string, []*VerseR
   b.book,
   b.chapter,
   b.verse,
-  b.query
+  b.query,
+	COUNT(*) OVER() AS result_count
 FROM (
     SELECT content,
       book,
@@ -152,31 +162,32 @@ FROM (
     WHERE query @@ fts
   ) as b
   LEFT JOIN books k on k.short_name = b.book
-ORDER BY k.book_num LIMIT 50;`, queryTerms)
+ORDER BY k.book_num LIMIT 50 OFFSET $2;`, queryTerms, offset)
 	if err != nil {
 		// handle this error
-		return nil, nil, err
+		return nil, nil, 0, err
 	}
 	defer rows.Close()
 
 	var (
-		results  []*VerseResult
-		ftsQuery []string
+		results     []*VerseResult
+		ftsQuery    []string
+		resultCount int
 	)
 	for rows.Next() {
 
 		var result VerseResult
 		var content string
 		var query string
-		err = rows.Scan(&content, &result.Book, &result.Chapter, &result.Verse, &query)
+		err = rows.Scan(&content, &result.Book, &result.Chapter, &result.Verse, &query, &resultCount)
 		if err != nil {
 			// handle this error
-			return nil, nil, err
+			return nil, nil, 0, err
 		}
 
 		err = xml.Unmarshal([]byte(content), &result.Content)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, 0, err
 		}
 
 		if isPhrase {
@@ -194,9 +205,9 @@ ORDER BY k.book_num LIMIT 50;`, queryTerms)
 	// get any error encountered during iteration
 	err = rows.Err()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, 0, err
 	}
 
-	return ftsQuery, results, err
+	return ftsQuery, results, resultCount, err
 
 }

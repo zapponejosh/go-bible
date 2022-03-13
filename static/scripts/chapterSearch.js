@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
       // if not on chapter page
       if (!bookData || !currentChapter) {
         let chosenBook = bookSelect.firstElementChild;
-        console.log(chosenBook.dataset.chapters);
         for (i = chosenBook.dataset.chapters; i > 0; i--) {
           let chOpt = document.createElement("option");
           chOpt.text = i;

@@ -33,7 +33,7 @@
     {{end}}
   </ul>
   {{if .Results}}
-  <h3>Results</h3>
+  <h3 id="results" data-count="{{.Count}}">Results</h3>
   {{end}}
   <ol>
     {{ range .Results }}
@@ -42,6 +42,8 @@
     <p>{{ .VerseHtml }}</p>
     {{ end }}
   </ol>
+  <a id="prev-results" href="#">View previous 50 results</a>
+  <a id="next-results" href="#">View next 50 results</a>
   {{else}}
   <p>No results. Search again.</p>
   {{end}}
