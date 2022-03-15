@@ -16,13 +16,16 @@ document.addEventListener("DOMContentLoaded", (event) => {
   let prevRes = document.getElementById("prev-results");
   let resultCount = Number(document.getElementById("results").dataset.count);
 
-  let currentPage = Number(params.get("p"));
+  let currentPage = Number(params.get("p")) ? Number(params.get("p")) : 1;
   let prevPage;
   let nextPage;
 
-  if (currentPage <= 1 || !currentPage) {
+  if (currentPage <= 1) {
     nextPage = 2;
     prevRes.remove();
+    if (resultCount / (currentPage * 50) < 1) {
+      moreRes.remove();
+    }
   } else if (resultCount / (currentPage * 50) < 1) {
     prevPage = currentPage - 1;
     moreRes.remove();
