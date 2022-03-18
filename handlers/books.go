@@ -6,12 +6,18 @@ import (
 	"log"
 
 	"net/http"
-
-	_ "github.com/lib/pq"
 )
 
 type booksHandler struct {
 	db *sql.DB
+}
+type BookData struct {
+	ShortName string `json:"short_name,omitempty"`
+	LongName  string `json:"long_name,omitempty"`
+	Testament string `json:"testament,omitempty"`
+	BookNum   int    `json:"book_num,omitempty"`
+	Chapters  int    `json:"chapters,omitempty"`
+	Section   string `json:"section,omitempty"`
 }
 
 func NewBooksHandler(db *sql.DB) *booksHandler {
@@ -19,7 +25,7 @@ func NewBooksHandler(db *sql.DB) *booksHandler {
 }
 
 func (h booksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var books []*Book
+	var books []*BookData
 
 	books, err := getBooks(h.db)
 	if err != nil {
@@ -34,16 +40,7 @@ func (h booksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type Book struct {
-	ShortName string `json:"short_name,omitempty"`
-	LongName  string `json:"long_name,omitempty"`
-	Testament string `json:"testament,omitempty"`
-	BookNum   int    `json:"book_num,omitempty"`
-	Chapters  int    `json:"chapters,omitempty"`
-	Section   string `json:"section,omitempty"`
-}
-
-func getBooks(DB *sql.DB) ([]*Book, error) {
+func getBooks(DB *sql.DB) ([]*BookData, error) {
 
 	rows, err := DB.Query(`SELECT * FROM books ORDER BY book_num;`)
 	if err != nil {
@@ -51,10 +48,10 @@ func getBooks(DB *sql.DB) ([]*Book, error) {
 	}
 	defer rows.Close()
 
-	var books []*Book
+	var books []*BookData
 
 	for rows.Next() {
-		var book Book
+		var book BookData
 		err = rows.Scan(&book.ShortName, &book.LongName, &book.Testament, &book.BookNum, &book.Chapters, &book.Section)
 		if err != nil {
 			return nil, err

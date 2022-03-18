@@ -11,8 +11,6 @@ import (
 
 	"net/http"
 	"strings"
-
-	_ "github.com/lib/pq"
 )
 
 type VerseResult struct {
@@ -22,29 +20,13 @@ type VerseResult struct {
 	Verse     int
 	VerseHtml template.HTML
 }
-type Verse struct {
-	Text        string        `xml:",chardata"`
-	Num         string        `xml:"num,attr"`
-	Note        []Note        `xml:"note"`
-	TransChange []TransChange `xml:"transChange"`
-}
 
-type Note struct {
-	Text        string        `xml:",chardata"`
-	TransChange []TransChange `xml:"transChange"`
-}
-
-type TransChange struct {
-	Text      string `xml:",chardata"`
-	Type      string `xml:"type,attr"`
-	TransNote string `xml:"note"` // TransNote only provided within Verse (not in Note)
-}
 type indexHandler struct {
 	db        *sql.DB
 	indexTemp *template.Template
 }
 
-type ResultData struct {
+type TemplateData struct {
 	Terms   []string
 	Results []*VerseResult
 	Count   int
@@ -87,7 +69,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	highlightTerm(ftsQuery, results, phrase)
 
-	data := ResultData{
+	data := TemplateData{
 		Terms:   ftsQuery,
 		Results: results,
 		Count:   resultCount,
