@@ -26,8 +26,9 @@ func main() {
 	defer DB.Close()
 
 	// templates
-	tmpl := template.Must(template.ParseFiles("static/templates/index.html"))
-	chapterTmpl := template.Must(template.ParseFiles("static/templates/chapter.html"))
+	// var baseTmpl = [...]string{"static/templates/form.html", "static/templates/layout.html"} TODO need to refactor to use this
+	tmpl := template.Must(template.ParseFiles("static/templates/index.html", "static/templates/form.html", "static/templates/layout.html"))
+	chapterTmpl := template.Must(template.ParseFiles("static/templates/chapter.html", "static/templates/form.html", "static/templates/layout.html"))
 
 	r := mux.NewRouter()
 

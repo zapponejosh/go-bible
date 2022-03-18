@@ -1,59 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/stylesheets/style.css">
-  <title>Go-Bible</title>
-</head>
-
-<body>
-  <h1>The Static Bible Go App</h1>
-  <form action="/" method="get">
-    <label for="search">Search the Bible!</label>
-    <input type="text" name="search" id="search">
-    <button type="submit">Search</button>
-  </form>
-  <form id="chapterForm" method="get">
-    <label for="book">Go to chapter</label>
-    <select name="book" id="bookSelect">
-
-    </select>
-    <select name="chapter" id="chapterSelect">
-    </select>
-    <button type="submit">Go</button>
-  </form>
-  {{if .Results}}
-  <div id="chapter-container">
-    <a href="#previous" id="previous">
-      <div class="full-button">
-        <p>Previous</p>
-      </div>
-    </a>
-    <div id="chapter-body">
-      <h2>{{.Reference.Book}} {{.Reference.Chapter}}</h2>
-      {{ range .Results }}
-      <p data-verse="{{.Verse}}"><span>{{ .Verse }}</span> {{ .Content.Text }}</p>
-
-      {{ end }}
+{{define "body"}}
+{{if .Results}}
+<div id="chapter-container">
+  <a href="#previous" id="previous">
+    <div class="full-button">
+      <p>Previous</p>
     </div>
-    <a href="#next" id="next">
-      <div class="full-button">
-        <p>Next</p>
-      </div>
-    </a>
-  </div>
-  {{else}}
-  <p>No results for {{.Reference.Book}} {{.Reference.Chapter}}.</p>
-  {{end}}
-</body>
+  </a>
+  <div id="chapter-body">
+    <h2>{{.Reference.Book}} {{.Reference.Chapter}}</h2>
+    {{ range .Results }}
+    <p data-verse="{{.Verse}}"><span>{{ .Verse }}</span> {{ .Content.Text }}</p>
 
+    {{ end }}
+  </div>
+  <a href="#next" id="next">
+    <div class="full-button">
+      <p>Next</p>
+    </div>
+  </a>
+</div>
+{{else}}
+<p>No results for {{.Reference.Book}} {{.Reference.Chapter}}.</p>
+{{end}}
+{{end}}
+
+{{define "scripts"}}
 <script src="/static/scripts/chapterSearch.js"></script>
 <script src="/static/scripts/chapter.js"></script>
 <script src="/static/scripts/search.js"></script>
-
-
-
-</html>
+{{end}}

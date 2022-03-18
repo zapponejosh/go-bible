@@ -75,7 +75,7 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Count:   resultCount,
 	}
 
-	if err := h.indexTemp.Execute(w, data); err != nil {
+	if err := h.indexTemp.ExecuteTemplate(w, "layout", data); err != nil {
 		log.Println("error executing tempalte", err)
 		http.Error(w, "tempalte error", http.StatusInternalServerError)
 		return
