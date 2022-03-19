@@ -1,9 +1,4 @@
 {{define "form"}}
-<form action="/" method="get">
-  <label for="search">Search the Bible!</label>
-  <input type="text" name="search" id="search">
-  <button type="submit">Search</button>
-</form>
 <form id="chapterForm" method="get">
   <label for="book">Go to chapter</label>
   <select name="book" id="bookSelect">
@@ -13,4 +8,46 @@
   </select>
   <button type="submit">Go</button>
 </form>
+<hr>
+<form action="/" method="get">
+  <div><label for="search">Search the Bible!</label>
+    <input type="search" name="search" id="search">
+  </div>
+  <div>
+    <label for="testamentFilter">Testament</label>
+    <select name="testamentFilter" id="testamentFilter">
+      <option></option>
+
+      <option value="OT">Old</option>
+      <option value="NT">New</option>
+    </select>
+
+    <label for="sectionFilter">Section</label>
+    <select name="sectionFilter" id="sectionFilter">
+      <option></option>
+      <option value="pentateuch">Pentateuch</option>
+      <option value="history">History</option>
+      <option value="wisdom">Wisdom</option>
+      <option value="majProphets">Major Prophets</option>
+      <option value="minProphets">Minor Prophets</option>
+      <option value="gospels">Gospels</option>
+      <option value="paulineEpistles">Pauline Epistles</option>
+      <option value="generalEpistles">General Epistles</option>
+      <option value="apocalypse">Apocalypse</option>
+    </select>
+    <label for="bookFilter">Book</label>
+    <select name="bookFilter" id="bookFilter">
+      <option></option>
+
+    </select>
+  </div>
+  <button type="submit">Search</button>
+</form>
+<hr>
+
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/scripts/chapterSearch.js"></script>
+<script src="/static/scripts/search.js"></script>
 {{end}}

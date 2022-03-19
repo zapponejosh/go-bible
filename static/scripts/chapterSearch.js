@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", (event) => {
   // chapter select form
   let bookSelect = document.getElementById("bookSelect");
+  let bookFilter = document.getElementById("bookFilter");
   let chapterSelect = document.getElementById("chapterSelect");
   let form = document.getElementById("chapterForm");
   // get options
@@ -8,6 +9,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
     .then((res) => res.json())
     .then((data) => {
       data.forEach((book) => {
+        // TODO implement optgroups for book sections
+        // create chapter search book options
         let bookOpt = document.createElement("option");
         bookOpt.text = book.long_name;
         bookOpt.id = book.short_name;
@@ -16,7 +19,17 @@ document.addEventListener("DOMContentLoaded", (event) => {
         bookOpt.dataset.section = book.section;
         bookOpt.className = book.section;
 
+        // create book filter options
+        let filterOpt = document.createElement("option");
+        filterOpt.text = book.long_name;
+        filterOpt.id = book.short_name;
+        filterOpt.value = book.short_name;
+        filterOpt.dataset.chapters = book.chapters;
+        filterOpt.dataset.section = book.section;
+        filterOpt.className = book.section;
+
         bookSelect.appendChild(bookOpt);
+        bookFilter.appendChild(filterOpt);
       });
 
       // current state
