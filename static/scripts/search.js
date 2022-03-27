@@ -1,20 +1,20 @@
 document.addEventListener("DOMContentLoaded", (event) => {
-  setFilters();
-  // filter set event listeners to remove section and book options as filters are set
+  let params = new URL(document.location).searchParams;
 
-  document.getElementById("testamentFilter").onchange = updateSections;
-  document.getElementById("sectionFilter").onchange = updateBooks;
+  let queries = setFilters(params);
+  // filter set event listeners to remove section and book options as filters are set
+  document.getElementById("testamentFilter").onchange = handleSelectChange;
+  document.getElementById("sectionFilter").onchange = handleSelectChange;
+  document.getElementById("searchForm").onsubmit = handleSearch;
 
   // set pagination buttons
-  // make sure we are on the search page and not chapter browsing
   if (!!document.getElementById("results")) {
-    createPagination();
+    createPagination(params);
   }
 });
 
-function setFilters() {
+function setFilters(params) {
   // persist search input value
-  let params = new URL(document.location).searchParams;
   let search = params.get("search");
   let testamentFilter = params.get("testamentFilter");
   let sectionFilter = params.get("sectionFilter");
@@ -35,10 +35,10 @@ function setFilters() {
       queries[key] = sq;
     }
   }
-
-  if (!!document.getElementById("results")) {
-    window.history.pushState({}, document.title, "/");
-  }
+  // This should no longer be needed. Should remove after testing
+  // if (!!document.getElementById("results")) {
+  //   window.history.pushState({}, document.title, "/");
+  // }
   // set the filters on page load
   if (queries.testamentFilter) {
     document.getElementById("testamentFilter").value = queries.testamentFilter;
@@ -52,15 +52,21 @@ function setFilters() {
     // wait for books api
     setTimeout(function () {
       document.getElementById("bookFilter").value = queries.bookFilter;
-    }, 500);
+    }, 200);
   }
 
   if (queries.search) {
     document.getElementById("search").value = queries.search;
   }
+
+  updateSections(queries.testamentFilter);
+  setTimeout(() => {
+    updateBooks(queries.sectionFilter);
+  }, 600);
+  return queries;
 }
 
-function createPagination() {
+function createPagination(params) {
   let moreRes = document.getElementById("next-results");
   let prevRes = document.getElementById("prev-results");
   let resultCount = Number(document.getElementById("results").dataset.count);
@@ -90,19 +96,55 @@ function createPagination() {
   prevRes.href = document.location.origin + "?" + params;
 }
 
-function updateSections(e) {
-  // look at every section, check data-testament for matching value e.target.value
-  let v = e.target.value;
+function updateSections(value) {
+  let v = value;
 
-  // cant just remove the nodes because i have to be able to change the filter back
-  // loop through sections
-  // let opts = document.getElementById("sectionFilter").children;
-  // console.log(opts);
-  // for (i = 0; i < opts.length; i++) {
-  //   if (opts[i].dataset.testament != v) opts[i].remove();
-  // }
+  let opts = document.getElementById("sectionFilter").children;
+  for (i = 0; i < opts.length; i++) {
+    if (v == "none" || opts[i].dataset.testament == v) {
+      opts[i].removeAttribute("disabled");
+    } else {
+      opts[i].setAttribute("disabled", true);
+    }
+  }
+  opts[0].removeAttribute("disabled");
 }
-function updateBooks(e) {
-  // look at every book, check data-section for matching value e.target.value
-  console.log(e);
+function updateBooks(value) {
+  let v = value;
+
+  let opts = document.getElementById("bookFilter").children;
+  for (i = 0; i < opts.length; i++) {
+    if (v == "none" || opts[i].dataset.section != v) {
+      opts[i].setAttribute("disabled", true);
+    } else {
+      opts[i].removeAttribute("disabled");
+    }
+  }
+  opts[0].removeAttribute("disabled");
+}
+
+function handleSelectChange(e) {
+  if (e.target.id == "testamentFilter") {
+    updateSections(e.target.value);
+    document.getElementById("sectionFilter").value = "none";
+    document.getElementById("bookFilter").value = "none";
+  } else if (e.target.id == "sectionFilter") {
+    updateBooks(e.target.value);
+    document.getElementById("bookFilter").value = "none";
+  }
+}
+
+function handleSearch(e) {
+  e.preventDefault();
+
+  let search = document.getElementById("search").value;
+  let testamentFilter = document.getElementById("testamentFilter").value;
+  let sectionFilter = document.getElementById("sectionFilter").value;
+  let bookFilter = document.getElementById("bookFilter").value;
+
+  window.location.href = `${window.location.origin}?search=${search}${
+    testamentFilter != "none" ? `&testamentFilter=${testamentFilter}` : ""
+  }${sectionFilter != "none" ? `&sectionFilter=${sectionFilter}` : ""}${
+    bookFilter != "none" ? `&bookFilter=${bookFilter}` : ""
+  }`;
 }

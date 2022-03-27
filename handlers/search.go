@@ -46,6 +46,10 @@ func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// format query in slice
 	terms := strings.Split(strings.Join(q["search"], " "), " ")
 	offset, err := strconv.Atoi(strings.Join(q["p"], ""))
+	bookFilter := strings.Join(q["bookFilter"], " ")
+	testamentFilter := strings.Join(q["testamentFilter"], " ")
+	sectionFilter := strings.Join(q["sectionFilter"], " ")
+	fmt.Println(bookFilter, testamentFilter, sectionFilter)
 	if err != nil || offset <= 0 {
 		offset = 0
 	} else {
