@@ -11,12 +11,12 @@
 <hr>
 <form action="/" method="get">
   <div><label for="search">Search the Bible!</label>
-    <input type="search" name="search" id="search">
+    <input required type="search" name="search" id="search">
   </div>
   <div>
     <label for="testamentFilter">Testament</label>
     <select name="testamentFilter" id="testamentFilter">
-      <option></option>
+      <option value="none"></option>
 
       <option value="OT">Old</option>
       <option value="NT">New</option>
@@ -24,20 +24,20 @@
 
     <label for="sectionFilter">Section</label>
     <select name="sectionFilter" id="sectionFilter">
-      <option></option>
-      <option value="pentateuch">Pentateuch</option>
-      <option value="history">History</option>
-      <option value="wisdom">Wisdom</option>
-      <option value="majProphets">Major Prophets</option>
-      <option value="minProphets">Minor Prophets</option>
-      <option value="gospels">Gospels</option>
-      <option value="paulineEpistles">Pauline Epistles</option>
-      <option value="generalEpistles">General Epistles</option>
-      <option value="apocalypse">Apocalypse</option>
+      <option value="none"></option>
+      <option value="pentateuch" data-testament="OT">Pentateuch</option>
+      <option value="history" data-testament="OT">History</option>
+      <option value="wisdom" data-testament="OT">Wisdom</option>
+      <option value="majProphets" data-testament="OT">Major Prophets</option>
+      <option value="minProphets" data-testament="OT">Minor Prophets</option>
+      <option value="gospels" data-testament="NT">Gospels</option>
+      <option value="paulineEpistles" data-testament="NT">Pauline Epistles</option>
+      <option value="generalEpistles" data-testament="NT">General Epistles</option>
+      <option value="apocalypse" data-testament="NT">Apocalypse</option>
     </select>
     <label for="bookFilter">Book</label>
     <select name="bookFilter" id="bookFilter">
-      <option></option>
+      <option value="none"></option>
 
     </select>
   </div>
@@ -45,9 +45,4 @@
 </form>
 <hr>
 
-{{end}}
-
-{{define "scripts"}}
-<script src="/static/scripts/chapterSearch.js"></script>
-<script src="/static/scripts/search.js"></script>
 {{end}}
