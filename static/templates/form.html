@@ -1,9 +1,4 @@
 {{define "form"}}
-<form action="/" method="get">
-  <label for="search">Search the Bible!</label>
-  <input type="text" name="search" id="search">
-  <button type="submit">Search</button>
-</form>
 <form id="chapterForm" method="get">
   <label for="book">Go to chapter</label>
   <select name="book" id="bookSelect">
@@ -13,4 +8,41 @@
   </select>
   <button type="submit">Go</button>
 </form>
+<hr>
+<form id="searchForm" action="/" method="get">
+  <div><label for="search">Search the Bible!</label>
+    <input required type="search" name="search" id="search">
+  </div>
+  <div>
+    <label for="testamentFilter">Testament</label>
+    <select name="testamentFilter" id="testamentFilter">
+      <option value="none"></option>
+
+      <option value="OT">Old</option>
+      <option value="NT">New</option>
+    </select>
+
+    <label for="sectionFilter">Section</label>
+    <select name="sectionFilter" id="sectionFilter">
+      <option value="none"></option>
+      <option value="pentateuch" data-testament="OT">Pentateuch</option>
+      <option value="history" data-testament="OT">History</option>
+      <option value="wisdom" data-testament="OT">Wisdom</option>
+      <option value="majProphets" data-testament="OT">Major Prophets</option>
+      <option value="minProphets" data-testament="OT">Minor Prophets</option>
+      <option value="gospels" data-testament="NT">Gospels</option>
+      <option value="paulineEpistles" data-testament="NT">Pauline Epistles</option>
+      <option value="generalEpistles" data-testament="NT">General Epistles</option>
+      <option value="apocalypse" data-testament="NT">Apocalypse</option>
+    </select>
+    <label for="bookFilter">Book</label>
+    <select name="bookFilter" id="bookFilter">
+      <option value="none"></option>
+
+    </select>
+  </div>
+  <button type="submit">Search</button>
+</form>
+<hr>
+
 {{end}}

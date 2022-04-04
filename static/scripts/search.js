@@ -1,17 +1,68 @@
 document.addEventListener("DOMContentLoaded", (event) => {
-  // persist search input value
   let params = new URL(document.location).searchParams;
-  let search = params.get("search");
-  if (search) {
-    let references = document.querySelectorAll(".reference");
-    references.forEach((refNode) => {
-      refNode.href = refNode.href + "&search=" + search;
-    });
-    let searchInput = document.getElementById("search");
-    searchInput.value = search;
-  }
+
+  let queries = setFilters(params);
+  // filter set event listeners to remove section and book options as filters are set
+  document.getElementById("testamentFilter").onchange = handleSelectChange;
+  document.getElementById("sectionFilter").onchange = handleSelectChange;
+  document.getElementById("searchForm").onsubmit = handleSearch;
 
   // set pagination buttons
+  if (!!document.getElementById("results")) {
+    createPagination(params);
+  }
+});
+
+function setFilters(params) {
+  // persist search input value
+  let search = params.get("search");
+  let testamentFilter = params.get("testamentFilter");
+  let sectionFilter = params.get("sectionFilter");
+  let bookFilter = params.get("bookFilter");
+
+  let queries = { search, testamentFilter, sectionFilter, bookFilter };
+
+  for (const key in queries) {
+    let q = queries[key];
+    let sq = localStorage.getItem(key);
+    if (q == "none") {
+      localStorage.removeItem(key);
+    } else if (q && (!sq || sq != q)) {
+      localStorage.setItem(key, q);
+    }
+    if (!q && sq) {
+      queries[key] = sq;
+    }
+  }
+
+  // set the filters on page load
+  if (queries.testamentFilter) {
+    document.getElementById("testamentFilter").value = queries.testamentFilter;
+  }
+
+  if (queries.sectionFilter) {
+    document.getElementById("sectionFilter").value = queries.sectionFilter;
+  }
+
+  if (queries.bookFilter) {
+    // wait for books api
+    setTimeout(function () {
+      document.getElementById("bookFilter").value = queries.bookFilter;
+    }, 200);
+  }
+
+  if (queries.search) {
+    document.getElementById("search").value = queries.search;
+  }
+
+  updateSections(queries.testamentFilter);
+  setTimeout(() => {
+    updateBooks(queries.sectionFilter);
+  }, 600);
+  return queries;
+}
+
+function createPagination(params) {
   let moreRes = document.getElementById("next-results");
   let prevRes = document.getElementById("prev-results");
   let resultCount = Number(document.getElementById("results").dataset.count);
@@ -39,4 +90,63 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   params.set("p", prevPage);
   prevRes.href = document.location.origin + "?" + params;
-});
+}
+
+function updateSections(value) {
+  let v = value;
+
+  let opts = document.getElementById("sectionFilter").children;
+  for (i = 0; i < opts.length; i++) {
+    if (v == "none" || opts[i].dataset.testament == v) {
+      opts[i].removeAttribute("disabled");
+    } else {
+      opts[i].setAttribute("disabled", true);
+    }
+  }
+  opts[0].removeAttribute("disabled");
+}
+function updateBooks(value) {
+  let v = value;
+
+  let opts = document.getElementById("bookFilter").children;
+  for (i = 0; i < opts.length; i++) {
+    if (v == "none" || opts[i].dataset.section != v) {
+      opts[i].setAttribute("disabled", true);
+    } else {
+      opts[i].removeAttribute("disabled");
+    }
+  }
+  opts[0].removeAttribute("disabled");
+}
+
+function handleSelectChange(e) {
+  if (e.target.id == "testamentFilter") {
+    updateSections(e.target.value);
+    document.getElementById("sectionFilter").value = "none";
+    document.getElementById("bookFilter").value = "none";
+  } else if (e.target.id == "sectionFilter") {
+    updateBooks(e.target.value);
+    document.getElementById("bookFilter").value = "none";
+  }
+}
+
+function handleSearch(e) {
+  e.preventDefault();
+
+  let search = document.getElementById("search").value;
+  let testamentFilter = document.getElementById("testamentFilter").value;
+  let sectionFilter = document.getElementById("sectionFilter").value;
+  let bookFilter = document.getElementById("bookFilter").value;
+
+  //set latest values in LS
+  localStorage.setItem("search", search);
+  localStorage.setItem("testamentFilter", testamentFilter);
+  localStorage.setItem("sectionFilter", sectionFilter);
+  localStorage.setItem("bookFilter", bookFilter);
+
+  window.location.href = `${window.location.origin}?search=${search}${
+    testamentFilter != "none" ? `&testamentFilter=${testamentFilter}` : ""
+  }${sectionFilter != "none" ? `&sectionFilter=${sectionFilter}` : ""}${
+    bookFilter != "none" ? `&bookFilter=${bookFilter}` : ""
+  }`;
+}
