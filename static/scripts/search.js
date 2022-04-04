@@ -19,7 +19,6 @@ function setFilters(params) {
   let testamentFilter = params.get("testamentFilter");
   let sectionFilter = params.get("sectionFilter");
   let bookFilter = params.get("bookFilter");
-  let fakeFilter = params.get("fakeFilter");
 
   let queries = { search, testamentFilter, sectionFilter, bookFilter };
 
@@ -35,10 +34,7 @@ function setFilters(params) {
       queries[key] = sq;
     }
   }
-  // This should no longer be needed. Should remove after testing
-  // if (!!document.getElementById("results")) {
-  //   window.history.pushState({}, document.title, "/");
-  // }
+
   // set the filters on page load
   if (queries.testamentFilter) {
     document.getElementById("testamentFilter").value = queries.testamentFilter;
@@ -141,6 +137,12 @@ function handleSearch(e) {
   let testamentFilter = document.getElementById("testamentFilter").value;
   let sectionFilter = document.getElementById("sectionFilter").value;
   let bookFilter = document.getElementById("bookFilter").value;
+
+  //set latest values in LS
+  localStorage.setItem("search", search);
+  localStorage.setItem("testamentFilter", testamentFilter);
+  localStorage.setItem("sectionFilter", sectionFilter);
+  localStorage.setItem("bookFilter", bookFilter);
 
   window.location.href = `${window.location.origin}?search=${search}${
     testamentFilter != "none" ? `&testamentFilter=${testamentFilter}` : ""
